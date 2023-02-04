@@ -47,7 +47,7 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz) // TODO: implement sys_gettimeofd
 	return 0;
 }
 
-uint64 sys_sbrk(void)
+uint64 sys_sbrk(int n)
 {
   uint64 addr;
   int n;
@@ -55,7 +55,7 @@ uint64 sys_sbrk(void)
 
   //argint(0, &n);
   //读取a0寄存器中值
-  n = p->trapframe->a0;
+  //n = p->trapframe->a0;
   addr = p->max_page;
   if(growproc(n) < 0)
     return -1;
@@ -96,6 +96,9 @@ void syscall()
 		break;
 	case SYS_gettimeofday:
 		ret = sys_gettimeofday((TimeVal *)args[0], args[1]);
+		break;
+	case SYS_sbrk:
+		ret = sys_sbrk(args[0]);
 		break;
 	/*
 	* LAB1: you may need to add SYS_taskinfo case here

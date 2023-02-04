@@ -57,4 +57,6 @@ struct proc *allocproc();
 // swtch.S
 void swtch(struct context *, struct context *);
 
+int growproc(int n);
+
 #endif // PROC_H

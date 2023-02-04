@@ -131,3 +131,22 @@ void exit(int code)
 	finished();
 	sched();
 }
+
+// Grow or shrink user memory by n bytes.
+// Return 0 on success, -1 on failure.
+int growproc(int n)
+{
+  uint64 max_page;
+  struct proc *p = curr_proc();
+
+  max_page = p->max_page;
+  if(n > 0){
+    if((max_page = uvmalloc(p->pagetable, max_page, max_page + n, PTE_W)) == 0) {
+      return -1;
+    }
+  } else if(n < 0){
+    max_page = uvmdealloc(p->pagetable, max_page, max_page + n);
+  }
+  p->max_page = max_page;
+  return 0;
+}

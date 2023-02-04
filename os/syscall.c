@@ -4,6 +4,7 @@
 #include "syscall_ids.h"
 #include "timer.h"
 #include "trap.h"
+#include "proc.h"
 
 uint64 sys_write(int fd, uint64 va, uint len)
 {
@@ -45,6 +46,23 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz) // TODO: implement sys_gettimeofd
 	// val->usec = (cycle % CPU_FREQ) * 1000000 / CPU_FREQ;
 	return 0;
 }
+
+uint64 sys_sbrk(void)
+{
+  uint64 addr;
+  int n;
+  struct proc *p = curr_proc();
+
+  //argint(0, &n);
+  //读取a0寄存器中值
+  n = p->trapframe->a0;
+  addr = p->max_page;
+  if(growproc(n) < 0)
+    return -1;
+  return addr;
+}
+
+
 
 // TODO: add support for mmap and munmap syscall.
 // hint: read through docstrings in vm.c. Watching CH4 video may also help.

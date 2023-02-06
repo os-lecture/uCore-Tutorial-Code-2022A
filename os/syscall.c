@@ -50,13 +50,13 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz) // TODO: implement sys_gettimeofd
 uint64 sys_sbrk(int n)
 {
   uint64 addr;
-  int n;
   struct proc *p = curr_proc();
 
   //argint(0, &n);
   //读取a0寄存器中值
   //n = p->trapframe->a0;
-  addr = p->max_page;
+  addr = p->program_brk;
+  //errorf("=====addr:%d\n",10);
   if(growproc(n) < 0)
     return -1;
   return addr;

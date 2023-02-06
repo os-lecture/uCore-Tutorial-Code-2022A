@@ -64,6 +64,7 @@ found:
 	p->pagetable = 0;
 	p->ustack = 0;
 	p->max_page = 0;
+        p->program_brk = 0;
 	memset(&p->context, 0, sizeof(p->context));
 	memset((void *)p->kstack, 0, KSTACK_SIZE);
 	memset((void *)p->trapframe, 0, TRAP_PAGE_SIZE);
@@ -136,17 +137,17 @@ void exit(int code)
 // Return 0 on success, -1 on failure.
 int growproc(int n)
 {
-  uint64 max_page;
+  uint64 program_brk;
   struct proc *p = curr_proc();
 
-  max_page = p->max_page;
+  program_brk = p->program_brk;
   if(n > 0){
-    if((max_page = uvmalloc(p->pagetable, max_page, max_page + n, PTE_W)) == 0) {
+    if((program_brk = uvmalloc(p->pagetable, program_brk, program_brk + n, PTE_W)) == 0) {
       return -1;
     }
   } else if(n < 0){
-    max_page = uvmdealloc(p->pagetable, max_page, max_page + n);
+    program_brk = uvmdealloc(p->pagetable, program_brk, program_brk + n);
   }
-  p->max_page = max_page;
+  p->program_brk = program_brk;
   return 0;
 }

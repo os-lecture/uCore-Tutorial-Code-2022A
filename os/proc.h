@@ -39,6 +39,7 @@ struct proc {
 	struct context context; // swtch() here to run process
 	uint64 max_page;
 	uint64 program_brk; //add by hw
+	uint64 heap_bottom; //add by hw
 	/*
 	* LAB1: you may need to add some new fields here
 	*/

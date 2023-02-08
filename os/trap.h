@@ -71,4 +71,8 @@ enum Interrupt {
 void trap_init();
 void usertrapret();
 
+int lazy_alloc(uint64 addr);
+void uvmlazytouch(uint64 va);
+int uvmshouldtouch(uint64 va);
+
 #endif // TRAP_H

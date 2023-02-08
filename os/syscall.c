@@ -52,8 +52,16 @@ uint64 sys_sbrk(int n)
   uint64 addr;
   struct proc *p = curr_proc();
   addr = p->program_brk;
-  if(growproc(n) < 0)
-    return -1;
+  //printf("=====sys_sbrk\n");
+  int heap_size = addr + n - p->heap_bottom; 
+  if(heap_size < 0){
+  	return -1;
+  }
+  else{
+  	//if(growproc(n) < 0)
+  	//  return -1;
+  }
+  p->program_brk += n;
   return addr;
 }
 

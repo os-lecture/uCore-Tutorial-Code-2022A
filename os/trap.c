@@ -69,12 +69,31 @@ void usertrap()
 			trapframe->epc += 4;
 			syscall();
 			break;
-		case StoreMisaligned:
 		case StorePageFault:
+		case LoadPageFault:
+			{
+				uint64 addr = (uint64)r_stval();
+				if(lazy_alloc(addr) < 0){
+					errorf("lazy_aolloc() < 0");
+				}
+			//struct proc *p = curr_proc();	
+			/*if(uvmshouldtouch(va)){
+				errorf("Page Fault %d in application, bad addr = %p, bad instruction = %p, "
+                               "core dumped.", cause, r_stval(), trapframe->epc);
+				uvmlazytouch(va);
+			}
+			else{
+				errorf("Unexpexted Scause %d in application, bad addr = %p, bad instruction = %p, "
+                               "core dumped.",cause, r_stval(), trapframe->epc);
+				//p->killed = 1;
+			}*/	
+			//exit(-2);
+				break;
+	       		}		
+		case StoreMisaligned:
 		case InstructionMisaligned:
 		case InstructionPageFault:
 		case LoadMisaligned:
-		case LoadPageFault:
 			errorf("%d in application, bad addr = %p, bad instruction = %p, "
 			       "core dumped.",
 			       cause, r_stval(), trapframe->epc);
@@ -121,3 +140,62 @@ void usertrapret()
 	tracef("return to user @ %p", trapframe->epc);
 	((void (*)(uint64, uint64))fn)(TRAPFRAME, satp);
 }
+
+
+int lazy_alloc(uint64 addr){
+struct proc *p = curr_proc();
+  // page-faults on a virtual memory address higher than any allocated with sbrk()
+  // this should be >= not > !!!
+  if (addr >= p->program_brk) {
+    errorf("lazy_alloc: access invalid address");
+    return -1;
+  }
+
+  if (addr < p->heap_bottom) {
+    errorf("lazy_alloc: access address below stack");
+    return -2;
+  }
+  
+  uint64 pa = PGROUNDDOWN(addr);
+  char* mem = kalloc();
+  if (mem == 0) {
+    errorf("lazy_alloc: kalloc failed");
+    return -3;
+  }
+  
+  memset(mem, 0, PGSIZE);
+  if(mappages(p->pagetable, pa, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0){
+    kfree(mem);
+    return -4;
+  }
+  return 0;
+}
+
+// touch a lazy-allocated page so it's mapped to an actual physical page.
+/*void uvmlazytouch(uint64 va) {
+	struct proc *p = curr_proc();
+	char *mem = kalloc();
+	if(mem == 0) {
+    		// failed to allocate physical memory
+   		errorf("lazy alloc: out of memory\n");
+   	 	//p->killed = 1;
+  	} else {
+    		memset(mem, 0, PGSIZE);
+    		if(mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0){
+      			errorf("lazy alloc: failed to map page\n");
+      			kfree(mem);
+      			//p->killed = 1;
+    		}	
+  	}
+  	// printf("lazy alloc: %p, p->sz: %p\n", PGROUNDDOWN(va), p->sz);
+}
+
+// whether a page is previously lazy-allocated and needed to be touched before use.
+int uvmshouldtouch(uint64 va) {
+  	pte_t *pte;
+  	struct proc *p = curr_proc();
+
+  	return va < p->program_brk // within size of memory for the process
+        && PGROUNDDOWN(va) != p->heap_bottom // not accessing stack guard page (it shouldn't be mapped)
+    	&& (((pte = walk(p->pagetable, va, 0))==0) || ((*pte & PTE_V)==0)); // page table entry does not exist
+}*/

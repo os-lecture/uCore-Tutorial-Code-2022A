@@ -330,12 +330,12 @@ uint64 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
 // process size.  Returns the new process size.
 uint64 uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
 {
-  if(newsz >= oldsz)
-    return oldsz;
-
-  if(PGROUNDUP(newsz) < PGROUNDUP(oldsz)){
-    int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;
-    uvmunmap(pagetable, PGROUNDUP(newsz), npages, 1);
+	printf("=====uvmdealloc\n");
+	if(newsz >= oldsz)
+		return oldsz;
+	if(PGROUNDUP(newsz) < PGROUNDUP(oldsz)){
+	int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;
+	uvmunmap(pagetable, PGROUNDUP(newsz), npages, 1);
   }
 
   return newsz;

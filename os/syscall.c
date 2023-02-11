@@ -49,20 +49,21 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz) // TODO: implement sys_gettimeofd
 
 uint64 sys_sbrk(int n)
 {
-  uint64 addr;
-  struct proc *p = curr_proc();
-  addr = p->program_brk;
-  //printf("=====sys_sbrk\n");
-  int heap_size = addr + n - p->heap_bottom; 
-  if(heap_size < 0){
-  	return -1;
-  }
-  else{
-  	//if(growproc(n) < 0)
-  	//  return -1;
-  }
-  p->program_brk += n;
-  return addr;
+	uint64 addr;
+	struct proc *p = curr_proc();
+	addr = p->program_brk;
+	int heap_size = addr + n - p->heap_bottom;
+	if(heap_size < 0){
+		errorf("out of heap_bottom\n");
+		return -1;
+	}
+	else{
+		p->program_brk += n; 
+		if(n < 0){
+			uvmdealloc(p->pagetable, addr, addr + n);
+		}
+	}
+	return addr;
 }
 
 
